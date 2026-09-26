@@ -1,22 +1,196 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: Deploy SOLO la tua immagine Docker Hub su ECS Fargate
 
-Parameters:
-  DockerHubImage:
-    Type: String
-    Default: "meneghin/cdc-pipeline:latest"  # <-- LA TUA IMMAGINE SU DOCKER HUB
-  SubnetIds:
-    Type: List<AWS::EC2::Subnet::Id>
-    Description: Seleziona 2 subnet pubbliche della tua VPC
-  SecurityGroupId:
-    Type: AWS::EC2::SecurityGroup::Id
-    Description: Security Group con outbound internet (per Kafka e HTTP)
+#Parameters:
+#  DockerHubImage:
+#    Type: String
+#    Default: "meneghin/cdc-pipeline:latest"
+#  SubnetIds:
+#    Type: List<AWS::EC2::Subnet::Id>
+#    Description: Seleziona 2 subnet pubbliche della tua VPC
+#  SecurityGroupId:
+#    Type: AWS::EC2::SecurityGroup::Id
+#    Description: Security Group con outbound internet (per Kafka e HTTP)
+#  CertificateArn:
+#    Type: String
+#    Description: ARN del certificato ACM per nurebo.com (obbligatorio per HTTPS)
 
 Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    # DependsOn:
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      # InstanceTenancy: String
+      # Ipv4IpamPoolId: String
+      # Ipv4NetmaskLength: Integer
+      Tags:
+        - Key: Name
+          Value: Project
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    # DependsOn:
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: 10.0.1.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Project Public Subnet (AZ1)
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    # DependsOn:
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: 10.0.2.0/24
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: Project Public Subnet (AZ2)
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    # DependsOn:
+    Properties:
+      Tags:
+        - Key: Name
+          Value: Project
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    # DependsOn:
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+      # VpnGatewayId: String
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    # DependsOn:
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: 10.0.11.0/24
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Project Private Subnet (AZ1)
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    # DependsOn:
+    Properties:
+      # AssignIpv6AddressOnCreation: Boolean
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      # AvailabilityZoneId: String
+      CidrBlock: 10.0.12.0/24
+      # EnableDns64: Boolean
+      # Ipv6CidrBlock: String
+      # Ipv6Native: Boolean
+      MapPublicIpOnLaunch: false
+      # OutpostArn: String
+      # PrivateDnsNameOptionsOnLaunch:
+      #   PrivateDnsNameOptionsOnLaunch
+      Tags:
+        - Key: Name
+          Value: Project Private Subnet (AZ2)
+      VpcId: !Ref VPC
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    # DependsOn:
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Project Public Routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    # DependsOn:
+    Properties:
+      # CarrierGatewayId: String
+      DestinationCidrBlock: 0.0.0.0/0
+      # DestinationIpv6CidrBlock: String
+      # EgressOnlyInternetGatewayId: String
+      GatewayId: !Ref InternetGateway
+      # InstanceId: String
+      # LocalGatewayId: String
+      # NatGatewayId: String
+      # NetworkInterfaceId: String
+      RouteTableId: !Ref PublicRouteTable
+      # TransitGatewayId: String
+      # VpcEndpointId: String
+      # VpcPeeringConnectionId: String
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    # DependsOn:
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    # DependsOn:
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
+
+  MySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Enable HTTP from 0.0.0.0/0
+      VpcId: !Ref VPC
+#      SecurityGroupIngress:
+#        - IpProtocol: tcp
+#          FromPort: 80
+#          ToPort: 80
+#          CidrIp: 0.0.0.0/0
+#        - IpProtocol: tcp
+#          FromPort: 22
+#          ToPort: 22
+#          CidrIp: 0.0.0.0/0
+#        - IpProtocol: tcp
+#          FromPort: 443
+#          ToPort: 443
+#          CidrIp: 0.0.0.0/0
+#      SecurityGroupIngress:
+#        - IpProtocol: "-1"
+#          CidrIp: 0.0.0.0/0
+#        - IpProtocol: "-1"
+#          CidrIpv6: "::/0"
+      SecurityGroupEgress:
+        - IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: "-1"
+          CidrIpv6: "::/0"
+
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
       ClusterName: cdc-pipeline-cluster
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
 
   TaskExecutionRole:
     Type: AWS::IAM::Role
@@ -46,9 +220,11 @@ Resources:
       Cpu: "2048"
       Memory: "4096"
       ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
       ContainerDefinitions:
         - Name: cdc-pipeline
-          Image: !Ref DockerHubImage
+          #          Image: !Ref DockerHubImage
+          Image: "meneghin/cdc-pipeline:latest"
           Essential: true
           LogConfiguration:
             LogDriver: awslogs
@@ -62,16 +238,113 @@ Resources:
     Properties:
       Cluster: !Ref ECSCluster
       TaskDefinition: !Ref TaskDefinition
+      EnableExecuteCommand: true
       DesiredCount: 1
       LaunchType: FARGATE
       NetworkConfiguration:
         AwsvpcConfiguration:
-          Subnets: !Ref SubnetIds
+          #          Subnets: !Ref SubnetIds
+          Subnets:
+            - !Ref PublicSubnet1
+            - !Ref PublicSubnet2
           SecurityGroups:
-            - !Ref SecurityGroupId
-          AssignPublicIp: true  # Per accesso Kafka esterno e chiamate HTTP
+#            - !Ref SecurityGroupId
+            - !Ref MySecurityGroup
+          AssignPublicIp: ENABLED  # Per accesso Kafka esterno e chiamate HTTP
+
+  # Security Groups
+  ALBSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ALB - HTTP/HTTPS dal mondo
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+
+  TasksSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Task interne - solo dal ALB
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          SourceSecurityGroupId: !Ref ALBSG
+
+  # ALB
+  ALB:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: nurebo-alb
+      Scheme: internet-facing
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
+      SecurityGroups:
+        - !Ref ALBSG
+
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: nginx-tg
+      Port: 80  # Nginx ascolta solo HTTP internamente
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      TargetType: ip
+      HealthCheckPath: /
+
+  # Listener HTTPS (termina TLS qui con certificato ACM)
+  HttpsListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 443
+      Protocol: HTTPS
+      Certificates:
+        #        - CertificateArn: !Ref CertificateArn
+        - CertificateArn: arn:aws:acm:eu-central-1:161741908860:certificate/35c39238-109e-4ac6-b7de-56e4aa799996
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref TargetGroup
+
+  # Listener HTTP → redirect HTTPS
+  HttpListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALB
+      Port: 80
+      Protocol: HTTP
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: "443"
+            StatusCode: HTTP_301
 
 Outputs:
+  ALBDNS:
+    Description: Punta nurebo.com a questo DNS
+    Value: !GetAtt ALB.DNSName
+
+  URLs:
+    Value: !Sub |
+      Accedi su HTTPS:
+      Kafka UI: https://nurebo.com/kafka-ui
+      Debezium: https://nurebo.com/connect
+      Flink: https://nurebo.com/flink
+      FastAPI: https://nurebo.com/fastapi
+      Flask: https://nurebo.com/flask
+      phpMyAdmin: https://nurebo.com/phpmyadmin
+      Spark: https://nurebo.com/spark
+
   ClusterName:
     Value: !Ref ECSCluster
   ServiceName:

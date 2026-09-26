@@ -1,5 +1,7 @@
 #version: '3.8'
 
+#name: cdc-pipeline
+
 services:
   #   docker exec -it kafka bash
 
@@ -12,7 +14,7 @@ services:
   #   /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:29092 --list
   #  docker-compose exec kafka /opt/kafka/bin/kafka-topics.sh --list --bootstrap-server kafka:29092
 
-  #   /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:29092 --topic mysql.db_cdc.test --from-beginning
+  #   /opt/kafka/bin/kafka-console-consumer.sh --bootstrap-server kafka:29092 --topic mysql.db_cdc.utenti --from-beginning
   kafka:
     image: apache/kafka:3.7.0
     container_name: kafka

@@ -131,9 +131,36 @@ def receive_events():
     """Endpoint principale"""
     try:
         data = request.get_json()
-        print(f"📨 Ricevuto: {json.dumps(data)[:200]}...")
         
-        # Risposta fissa per test
+        # Spark manda {"schema": {...}, "payload": {...}}
+        # Estrai solo il payload (i dati veri)
+        if isinstance(data, dict) and "payload" in data:
+            payload = data["payload"]
+            schema = data.get("schema", {})
+            
+            # Ricostruisci un dict leggibile dai campi dello schema
+            if "fields" in schema:
+                fields = schema["fields"]
+                if isinstance(payload, list):
+                    # payload è una lista di valori → mappa con i nomi dei campi
+                    record = dict(zip([f["field"] for f in fields], payload))
+                elif isinstance(payload, dict):
+                    record = payload
+                else:
+                    record = payload
+            else:
+                record = payload
+            
+            print(f"📨 Ricevuto: {json.dumps(record, ensure_ascii=False)}")
+            return jsonify({
+                "status": "ok",
+                "received": True,
+                "data": record,
+                "timestamp": datetime.datetime.now().isoformat()
+            })
+        
+        # Fallback: JSON normale
+        print(f"📨 Ricevuto: {json.dumps(data, ensure_ascii=False)}")
         return jsonify({
             "status": "ok",
             "received": True,

@@ -9,8 +9,8 @@ import datetime
 app = FastAPI(title="Debezium Event Receiver")
 
 PORT = 3000
-HOST = "127.0.0.1"
-# HOST = "0.0.0.0"
+# HOST = "127.0.0.1"
+HOST = "0.0.0.0"
 
 # Modelli (opzionali, per validazione leggera)
 class DebeziumPayload(BaseModel):
