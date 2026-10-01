@@ -70,7 +70,7 @@ df = spark \
     .readStream \
     .format("kafka") \
     .option("kafka.bootstrap.servers", "kafka:29092") \
-    .option("subscribe", "mysql.db_cdc.test") \
+    .option("subscribe", "mysql.db_cdc.utenti") \
     .option("startingOffsets", "earliest") \
     .load()
 

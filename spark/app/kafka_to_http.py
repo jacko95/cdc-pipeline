@@ -82,17 +82,18 @@ from pyspark.sql.functions import from_json, col, get_json_object
 from pyspark.sql.types import *
 import json
 import requests
+import os
 
 spark = SparkSession.builder \
     .appName("KafkaToHTTP-Clean") \
-    .master("local[*]") \
+    .master(os.getenv("SPARK_MASTER", "local[*]")) \
     .config("spark.sql.streaming.checkpointLocation", "/tmp/checkpoint_clean") \
     .getOrCreate()
 
 # Leggi da Kafka
 df = spark.readStream \
     .format("kafka") \
-    .option("kafka.bootstrap.servers", "kafka:29092") \
+    .option("kafka.bootstrap.servers", os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:29092")) \
     .option("subscribe", "mysql.db_cdc.utenti") \
     .option("startingOffsets", "earliest") \
     .load()
@@ -121,7 +122,8 @@ def send_batch(df, epoch_id):
             # Invia la stringa JSON DIRETTAMENTE come raw data
             # (alcuni server preferiscono così)
             response = requests.post(
-                "http://host.docker.internal:5000/events",
+                # "http://host.docker.internal:5000/events",
+                os.getenv("FLASK_URL", "http://host.docker.internal:5000/events"),
                 data=json_str,  # NOTA: data=, non json=
                 headers={'Content-Type': 'application/json'},
                 timeout=5

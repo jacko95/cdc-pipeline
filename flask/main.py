@@ -103,18 +103,17 @@ def test_mysql_connection():
     print("🔌 Test connessione MySQL...")
     try:
         conn = mysql.connector.connect(**MYSQL_CONFIG)
-        print(f"✅ MySQL connesso a {MYSQL_CONFIG['host']}:{MYSQL_CONFIG['port']}")
-        
+        print(f"✅ MySQL connesso a {MYSQL_CONFIG['host']}:{MYSQL_CONFIG['port']}", flush=True)
         cursor = conn.cursor()
         cursor.execute("SHOW TABLES")
         tables = cursor.fetchall()
-        print(f"📊 Tabelle trovate: {[t[0] for t in tables]}")
+        print(f"📊 Tabelle trovate: {[t[0] for t in tables]}", flush=True)
         
         cursor.close()
         conn.close()
         return True
     except Error as e:
-        print(f"❌ Errore MySQL: {e}")
+        print(f"❌ Errore MySQL: {e}", flush=True)
         print(f"   Config usata: host={MYSQL_CONFIG['host']}, user={MYSQL_CONFIG['user']}, db={MYSQL_CONFIG['database']}")
         return False
 
@@ -150,8 +149,8 @@ def receive_events():
                     record = payload
             else:
                 record = payload
-            
-            print(f"📨 Ricevuto: {json.dumps(record, ensure_ascii=False)}")
+                
+            print(f"📨 Ricevuto: {json.dumps(record, ensure_ascii=False)}", flush=True)
             return jsonify({
                 "status": "ok",
                 "received": True,
@@ -160,7 +159,7 @@ def receive_events():
             })
         
         # Fallback: JSON normale
-        print(f"📨 Ricevuto: {json.dumps(data, ensure_ascii=False)}")
+        print(f"📨 Ricevuto: {json.dumps(data, ensure_ascii=False)}", flush=True)
         return jsonify({
             "status": "ok",
             "received": True,
@@ -168,7 +167,7 @@ def receive_events():
         })
     
     except Exception as e:
-        print(f"💥 Errore: {e}")
+        print(f"💥 Errore: {e}", flush=True)
         return jsonify({"error": str(e)}), 500
 
 @app.route('/health', methods=['GET'])

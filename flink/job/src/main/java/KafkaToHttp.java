@@ -224,7 +224,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class KafkaToHttp {
     public static void main(String[] args) throws Exception {
-        StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+//         StreamExecutionEnvironment env = StreamExecutionEnvironment.createLocalEnvironment();
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.setParallelism(1);
 
         KafkaSource<String> source = KafkaSource.<String>builder()
@@ -324,7 +325,9 @@ public class KafkaToHttp {
                 System.out.println(finalPayload);
 
                 // Invia HTTP POST
-                HttpPost request = new HttpPost("http://host.docker.internal:3000/events");
+//                 HttpPost request = new HttpPost("http://host.docker.internal:3000/events");
+                String url = System.getenv().getOrDefault("FASTAPI_URL", "http://host.docker.internal:3000/events");
+                HttpPost request = new HttpPost(url);
                 request.setHeader("Content-Type", "application/json");
                 request.setHeader("User-Agent", "Flink-HTTP/1.0");
                 request.setEntity(new StringEntity(finalPayload, "UTF-8"));
