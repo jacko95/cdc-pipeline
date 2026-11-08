@@ -2,6 +2,15 @@
 
 #name: cdc-pipeline
 
+# docker build -t meneghin/flask:latest .\flask
+# docker push meneghin/flask:latest
+# docker build -t meneghin/spark:latest .\spark
+# docker push meneghin/spark:latest
+# docker build -t meneghin/fastapi:latest .\fastAPI
+# docker push meneghin/fastapi:latest
+# docker build -t meneghin/flink:latest -f .\flink\Dockerfile.job .\flink
+# docker push meneghin/flink:latest
+
 services:
   #   docker exec -it kafka bash
 
