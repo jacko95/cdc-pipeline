@@ -19,8 +19,12 @@
 - Le pubblica su **Apache Kafka** tramite **Debezium** e Kafka Connect
 - Le elabora con diversi framework: **Apache Flink** (Java) e **Apache Spark** (Python)
 - Espone i risultati tramite **FastAPI** e una dashboard **Flask**
+- Usa **Nginx** come reverse proxy davanti ai servizi web
 
 È pensato come ambiente di apprendimento per CDC, Kafka, stream processing e microservizi.
+
+> **Nota:** Questo progetto utilizza **solo immagini ufficiali** (Apache Kafka, Debezium, Flink, Spark, ecc.).
+> Su GitHub si trovano spesso soluzioni basate sulle immagini **Confluent**.
 
 ## ✨ Componenti principali
 
@@ -30,9 +34,10 @@
 | **Debezium + Kafka Connect** | Cattura le modifiche del database |
 | **Apache Kafka** | Backbone di messaggistica |
 | **Apache Flink** | Stream processing in Java |
-| **Apache Spark** | Elaborazione batch e streaming in Python |
+| **Apache Spark** | Elaborazione batch in Python |
 | **FastAPI** | API REST che consuma gli eventi |
-| **Flask** | Dashboard web per visualizzare i risultati |
+| **Flask** | API REST che consuma gli eventi |
+| **Nginx** | Reverse proxy per i servizi web |
 
 ## 🏗 Architettura
 
@@ -46,6 +51,7 @@
 2. Debezium cattura l'evento e lo pubblica su un topic Kafka
 3. Flink e Spark consumano e elaborano gli eventi
 4. I risultati vengono inviati a FastAPI e Flask per essere esposti
+5. Nginx fa da reverse proxy davanti ai servizi web
 
 ## 🛠 Tech Stack
 
@@ -56,10 +62,10 @@ Apache Kafka · Debezium · Kafka Connect · Zookeeper
 Apache Flink (Java) · Apache Spark (Python)
 
 **API & Web**
-FastAPI · Flask
+FastAPI · Flask · Nginx
 
 **Infrastruttura**
-Docker · MySQL
+Docker · MySQL · CloudFormation
 
 ## 🚀 Come iniziare
 
@@ -88,15 +94,15 @@ chmod +x init-connector.sh
 ```text
 cdc-pipeline/
 ├── fastAPI/              # Servizio FastAPI (consumer + API)
-├── flask/                # Dashboard Flask
+├── flask/                # Servizio Flask (riceve eventi via POST)
 ├── flink/                # Job Flink (Java)
 ├── spark/                # Applicazioni Spark (Python)
 ├── mysql/                # Schema e init scripts
+├── nginx/                # Configurazione Nginx (reverse proxy)
 ├── docker-compose.yml    # Orchestrazione servizi
 ├── init-connector.sh     # Registrazione Debezium connector
 └── deploy.cf.yaml        # Template CloudFormation (opzionale)
 ```
-
 
 ## 📄 Licenza
 
