@@ -84,7 +84,6 @@ docker-compose up -d
 
 ```bash
 docker compose down -v
-docker rmi kafka-debezium-flink-job --force
 docker builder prune -f
 ```
 
