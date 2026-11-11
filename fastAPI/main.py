@@ -73,6 +73,13 @@ async def receive_events(request: Request):
         "operation": op
     })
 
+@app.get("/health")
+async def health_check():
+    return JSONResponse({
+        "status": "healthy",
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z"
+    })
+
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
     return JSONResponse(status_code=404, content={

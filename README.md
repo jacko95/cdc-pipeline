@@ -45,9 +45,7 @@
   <img src="https://nurebo-public.s3.eu-central-1.amazonaws.com/images/architettura2.jpg" alt="CDC Pipeline Architecture" width="800"/>
 </div>
 
-### Flusso dei dati
-
-1. Una modifica avviene su MySQL
+1. Quando una modifica avviene su MySQL
 2. Debezium cattura l'evento e lo pubblica su un topic Kafka
 3. Flink e Spark consumano e elaborano gli eventi
 4. I risultati vengono inviati a FastAPI e Flask per essere esposti
@@ -82,11 +80,20 @@ cd cdc-pipeline
 docker-compose up -d
 ```
 
+### Stop
+
+```bash
+docker compose down -v
+docker rmi kafka-debezium-flink-job --force
+docker builder prune -f
+```
+
 ### Test
 
 ```bash
-chmod +x init-connector.sh
-./init-connector.sh
+docker exec mysql mysql -u cdc_user -pcdc_password -e "USE db_cdc; INSERT INTO utenti (name) VALUES ('utente1');"
+docker logs fastapi-flink -f
+docker logs flask-spark -f
 ```
 
 ## 📁 Struttura del progetto

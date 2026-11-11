@@ -38,7 +38,6 @@ services:
       KAFKA_PROCESS_ROLES: broker,controller
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
 
-      # CORREGGI I LISTENERS:
       KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093,PLAINTEXT_HOST://0.0.0.0:9092
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
 
@@ -46,7 +45,6 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
 
-      # AGGIUNGI QUESTE PROPRIETÀ PER KRaft:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -282,8 +280,14 @@ services:
 #  docker compose up -d
 #  docker compose down -v
 #  docker rmi kafka-debezium-flink-job --force
+#  docker rmi kafka-debezium-fastapi-flink --force
 #  docker builder prune -f
 #  docker logs flink-job -f
+#  docker logs fastapi-flink -f
+#  docker logs flask-spark -f
+#  docker exec -it nginx -t
+#  docker logs nginx
+#  docker exec -it nginx curl -I http://localhost
   flink-job:
 #    image: maven:3.9-eclipse-temurin-11
     build:
@@ -366,6 +370,7 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: debezium
       KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://debezium:8083
+#      SERVER_SERVLET_CONTEXT_PATH: /kafka-ui
     restart: unless-stopped
     networks:
       - app-net
