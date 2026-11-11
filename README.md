@@ -18,13 +18,13 @@
 - Cattura in tempo reale le modifiche (INSERT, UPDATE, DELETE) da un database **MySQL**
 - Le pubblica su **Apache Kafka** tramite **Debezium** e Kafka Connect
 - Le elabora con diversi framework: **Apache Flink** (Java) e **Apache Spark** (Python)
-- Espone i risultati tramite **FastAPI** e una dashboard **Flask**
+- Espone i risultati tramite **FastAPI** e un servizio **Flask** che riceve gli eventi via HTTP
 - Usa **Nginx** come reverse proxy davanti ai servizi web
 
 È pensato come ambiente di apprendimento per CDC, Kafka, stream processing e microservizi.
 
 > **Nota:** Questo progetto utilizza **solo immagini ufficiali** (Apache Kafka, Debezium, Flink, Spark, ecc.).
-> Su GitHub si trovano spesso soluzioni basate sulle immagini **Confluent**.
+> Su GitHub si trovano solo soluzioni basate sulle immagini **Confluent**.
 
 ## ✨ Componenti principali
 
@@ -36,7 +36,7 @@
 | **Apache Flink** | Stream processing in Java |
 | **Apache Spark** | Elaborazione batch in Python |
 | **FastAPI** | API REST che consuma gli eventi |
-| **Flask** | API REST che consuma gli eventi |
+| **Flask** | Servizio che riceve gli eventi elaborati |
 | **Nginx** | Reverse proxy per i servizi web |
 
 ## 🏗 Architettura
@@ -62,8 +62,42 @@ Apache Flink (Java) · Apache Spark (Python)
 **API & Web**
 FastAPI · Flask · Nginx
 
+**Database**
+MySQL
+
 **Infrastruttura**
-Docker · MySQL · CloudFormation
+Docker · CloudFormation
+
+## 🌐 Interfacce e URL locali
+
+Una volta avviato lo stack, puoi accedere alle seguenti interfacce:
+
+### Accesso diretto
+
+| Servizio | URL | Descrizione |
+|----------|-----|-------------|
+| **Nginx** | [http://localhost](http://localhost) | Reverse proxy principale |
+| **FastAPI** | [http://localhost:3000](http://localhost:3000) | API REST (Flink) |
+| **Flask** | [http://localhost:5000](http://localhost:5000) | Servizio eventi (Spark) |
+| **Flink Web UI** | [http://localhost:8091](http://localhost:8091) | Dashboard Flink |
+| **Spark Master UI** | [http://localhost:8089](http://localhost:8089) | Dashboard Spark Master |
+| **Spark Worker UI** | [http://localhost:8084](http://localhost:8084) | Dashboard Spark Worker  | Interfaccia Kafka |
+| **phpMyAdmin** | [http://localhost:8085](http://localhost:8085) | Gestione MySQL |
+| **Kafka Connect / Debezium** | [http://localhost:8083](http://localhost:8083) | REST API Kafka Connect |
+
+### Accesso via Nginx (reverse proxy)
+
+| Servizio | URL via Nginx | Descrizione |
+|----------|---------------|-------------|
+| **FastAPI** | [http://localhost/fastapi/](http://localhost/fastapi/) | API REST |
+| **Flask** | [http://localhost/flask/](http://localhost/flask/) | Servizio eventi |
+| **Flink Web UI** | [http://localhost/flink/](http://localhost/flink/) | Dashboard Flink |
+| **Spark Master UI** | [http://localhost/spark/](http://localhost/spark/) | Dashboard Spark |
+| **Kafka UI** | [http://localhost/kafka-ui/](http://localhost/kafka-ui/) | Interfaccia Kafka |
+| **phpMyAdmin** | [http://localhost/phpmyadmin/](http://localhost/phpmyadmin/) | Gestione MySQL |
+| **Kafka Connect / Debezium** | [http://localhost/connect/](http://localhost/connect/) | REST API Kafka Connect |
+
+**MySQL** è disponibile su `localhost:3307`.
 
 ## 🚀 Come iniziare
 
